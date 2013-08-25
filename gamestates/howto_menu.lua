@@ -26,11 +26,16 @@ function HowtoMenu:draw()
 	-- COLOR
   love.graphics.setColor(100, 149, 237)
 
-  love.graphics.printf("CONTROLS | player movements: arrow keys", 
-    0, 180, love.graphics.getWidth(), "center")
+  love.graphics.printf("|| CONTROLS ||", 
+    0, 160, love.graphics.getWidth(), "center")
+  love.graphics.printf("Player movements: arrow keys", 
+    0, 190, love.graphics.getWidth(), "center")
 
-  love.graphics.printf("INSTRUCTIONS | Collect all the gems before reach the key to finish the level",
-    0, 220, love.graphics.getWidth(), "center")
+  love.graphics.printf("|| INSTRUCTIONS ||",
+    0, 240, love.graphics.getWidth(), "center")
+
+  love.graphics.printf("Collect all the gems before reach the key to finish the level in just 10 seconds",
+    0, 270, love.graphics.getWidth(), "center")
 
   -- RESET COLOR
   love.graphics.setColor(255,255,255)

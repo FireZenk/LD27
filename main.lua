@@ -9,8 +9,9 @@ local Game = require 'game'
 require 'gamestates.loading'
 require 'gamestates.main_menu'
 require 'gamestates.credits_menu'
-require 'gamestates.game_screen'
 require 'gamestates.howto_menu'
+require 'gamestates.game_screen'
+
 
 local game -- the "game" var is local; only visible on this file
 

@@ -3,14 +3,17 @@ local Game = require 'game'
 local MainMenu = require 'gamestates.main_menu'
 local GameScreen = Game:addState('GameScreen', MainMenu)
 
+-- TWEEN
+local tween = require 'lib.tween'
+
 -- IMPORTS
 require "util.audio"
-require "util.input"
 require "player"
 require "bugs"
 
 -- STATE IMPL
 function GameScreen:enteredState()
+  self:log('Entering GameScreen') 
   load()
 end
 
@@ -26,22 +29,7 @@ function GameScreen:exitedState()
   self:log('Exiting GameScreen') 
 end
 
--- FUNCS
-function load()
-  -- INIT TIMER
-  t_seconds = 9
-  t_millis  = 99
-  t_running = true
-
-  -- INIT SCENARIO
-  scale = 2
-  grass = {}
-  scenario_n = 7*scale
-  scenario_m = 5*scale
-  obstacles = {}
-  gem_n = 0
-  win = false
-
+function map()
   -- CREATE BASE MAP
   grass = { -- 0=hierba, 1=agua
   {0,0,0,0,0,0,0,0,0,0},
@@ -74,6 +62,26 @@ function load()
   {0,2,1,0,2,2,2,2,2,2},
   {0,0,0,0,0,0,0,0,0,0},
   {1,1,1,1,1,1,1,1,0,5}} --lineaFin
+end
+
+-- FUNCS
+function load()
+  -- INIT TIMER
+  t_seconds = 9
+  t_millis  = 99
+  t_running = true
+
+  -- INIT SCENARIO
+  scale = 2
+  grass = {}
+  scenario_n = 7*scale
+  scenario_m = 5*scale
+  obstacles = {}
+  gem_n = 0
+  win = false
+
+  -- INIT MAP
+  map()
 
   local f = love.graphics.newFont("assets/a song for jennifer.ttf", 22)
   love.graphics.setFont(f)
@@ -97,11 +105,19 @@ function load()
   gemG:setFilter("nearest","nearest")
   gemO = love.graphics.newImage("assets/Gem Orange.png")
   gemO:setFilter("nearest","nearest")
+
   bug = love.graphics.newImage("assets/Enemy Bug.png")
   bug:setFilter("nearest","nearest")
 
-  player.sprite = love.graphics.newImage("assets/Character Boy.png")
-  player.sprite:setFilter("nearest","nearest")
+  player.spriteD = love.graphics.newImage("assets/Character Boy.png")
+  player.spriteU = love.graphics.newImage("assets/Character Boy Back.png")
+  player.spriteL = love.graphics.newImage("assets/Character Boy Left.png")
+  player.spriteR = love.graphics.newImage("assets/Character Boy Right.png")
+  player.spriteD:setFilter("nearest","nearest")
+  player.spriteU:setFilter("nearest","nearest")
+  player.spriteL:setFilter("nearest","nearest")
+  player.spriteR:setFilter("nearest","nearest")
+  player.sprite = player.spriteD
   player.step_x = (piece_grass:getWidth()-player.sprite:getWidth()/2)*scale
   player.x = player.step_x
   player.step_y = ((52.5-player.sprite:getHeight()/2)*scale)
@@ -166,6 +182,9 @@ function update(dt)
   -- HANDLE AUDIO
   love.audio.update()
 
+  -- TWEEN UPDATE
+  tween.update(dt)
+
   -- CHECK POSITION
   if obstacles[player.i][player.j] == 7
     or obstacles[player.i][player.j] == 8
@@ -207,18 +226,17 @@ function moveBugs(dt)
 end
 
 function hud()
+  local f = love.graphics.newFont("assets/a song for jennifer.ttf", 22)
+  love.graphics.setFont(f)
+
   -- COLOR
   love.graphics.setColor(100, 149, 237)
-
-  -- NAME
-  -- love.graphics.printf("by @FireZenk", 10, 0, love.graphics.getWidth(), "left")
 
   -- TIMER
   if t_seconds < 1 and t_millis < 1 then
     love.graphics.printf("TIME'S UP!",
       0, 0, love.graphics.getWidth(), "center")
     t_running = false
-    love.audio.stop(bgm)
   end
   
   if t_running then
@@ -240,23 +258,23 @@ function hud()
   -- GEM COUNTER
   love.graphics.printf("GEMS: "..gem_n.."/3", -10, 0, love.graphics.getWidth(), "right")
 
+  -- WIN & LOSE
   if win == true then 
-    love.audio.stop(bgm)
-    f = love.graphics.newFont("assets/a song for jennifer.ttf", 40)
+    local f = love.graphics.newFont("assets/a song for jennifer.ttf", 40)
     love.graphics.setFont(f)
-    love.graphics.printf("FINISH! Push R to restart", 0, 240, love.graphics.getWidth(), "center")
-    f = love.graphics.newFont(22)
-    love.graphics.setFont(f)
+    love.graphics.printf("You Win! Press R to restart", 0, 200, love.graphics.getWidth(), "center")
+    love.graphics.printf("or ESC to menu.", 0, 240, love.graphics.getWidth(), "center")
+
+    quit() 
   end
 
-  if t_running == false and win == false then
-    love.audio.stop(bgm)
-    love.audio.play("assets/death.wav")
-    f = love.graphics.newFont("assets/a song for jennifer.ttf", 40)
+  if win == false and t_running == false then 
+    local f = love.graphics.newFont("assets/a song for jennifer.ttf", 40)
     love.graphics.setFont(f)
-    love.graphics.printf("YOU LOOSE! Push R to restart", 0, 240, love.graphics.getWidth(), "center")
-    f = love.graphics.newFont("assets/a song for jennifer.ttf", 22)
-    love.graphics.setFont(f)
+    love.graphics.printf("You Lose! Press R to restart", 0, 200, love.graphics.getWidth(), "center")
+    love.graphics.printf("or ESC to menu.", 0, 240, love.graphics.getWidth(), "center")
+
+    quit() 
   end
 end
 
@@ -269,36 +287,44 @@ function checkObstacle(i, j)
 end
 
 function moveUp()
+  player.sprite = player.spriteU
   if player.j > 1 and checkObstacle(player.i,player.j-1) then
   	if player.y ~= 0 then
-    	player.y = player.y - player.step_y
-       player.j = player.j - 1
+        --player.y = player.y - player.step_y
+        tween(0.1, player, {y = player.y - player.step_y}, 'linear')
+        player.j = player.j - 1
     end
   end
 end
 
 function moveDown()
+  player.sprite = player.spriteD
   if player.j < scenario_m and checkObstacle(player.i,player.j+1) then
   	if player.y ~= player.step_y*(scenario_m-1) then
-    		player.y = player.y + player.step_y
+    		--player.y = player.y + player.step_y
+        tween(0.1, player, {y = player.y + player.step_y}, 'linear')
         player.j = player.j + 1
     end
   end
 end
 
 function moveRight()
+  player.sprite = player.spriteR
   if player.i < scenario_n and checkObstacle(player.i+1,player.j) then
   	if player.x ~= player.step_x*scenario_n then
-    		player.x = player.x + player.step_x
+    		--player.x = player.x + player.step_x
+        tween(0.1, player, {x = player.x + player.step_x}, 'linear')
         player.i = player.i + 1
     	end
   end
 end
 
 function moveLeft()
+  player.sprite = player.spriteL
   if player.i > 1 and checkObstacle(player.i-1,player.j) then
   	if player.x ~= player.step_x then
-    		player.x = player.x - player.step_x
+    		--player.x = player.x - player.step_x
+        tween(0.1, player, {x = player.x - player.step_x}, 'linear')
         player.i = player.i - 1
     	end
   end
@@ -326,13 +352,14 @@ function GameScreen:keypressed(key, unicode)
     elseif key == "down" then moveDown()
     end
   else
-    if key == "r" then restart() end
-  end
-
-  -- STATE KEYS
-  if key == 'escape' then
-    quit()
-    self:gotoState('MainMenu')
+    -- STATE KEYS
+    if key == 'escape' then
+      quit()
+      self:gotoState('MainMenu')
+    elseif key == 'r' then
+      quit()
+      load()
+    end
   end
 end
 
@@ -341,10 +368,29 @@ function GameScreen:mousepressed(x,y,button)
   -- NO ACTION
 end
 
--- RESTART
-function restart() load() end
-
 -- END
-function quit() love.audio.stop(bgm) end
+function quit() 
+  -- MAP & GEMS
+  map() gem_n=0
+  -- PLAYER
+  player.step_x = (piece_grass:getWidth()-player.sprite:getWidth()/2)*scale
+  player.step_y = ((52.5-player.sprite:getHeight()/2)*scale)
+  player.sprite = player.spriteD
+  player.x = player.step_x
+  player.y = 0
+  player.i = 1
+  player.j = 1
+  -- ENEMIES
+  bugs[1].bug_x, bugs[1].bug_y, bugs[1].bug_moves = 8, 1, 1
+  bugs[2].bug_x, bugs[2].bug_y, bugs[2].bug_moves = 7, 8, 1
+  bugs[3].bug_x, bugs[3].bug_y, bugs[3].bug_moves = 9, 9, 1
+  bugs[4].bug_x, bugs[4].bug_y, bugs[4].bug_moves = 11,8, 1
+  bugs[5].bug_x, bugs[5].bug_y, bugs[5].bug_moves = 11,1, 1  
+  -- AUDIO
+  love.audio.stop(bgm) 
+  -- FONT RESET
+  local f = love.graphics.newFont("assets/a song for jennifer.ttf", 22)
+  love.graphics.setFont(f)
+end
 
 return GrameScreen

@@ -1,6 +1,8 @@
 local Game = require 'game'
-
 local Loading = Game:addState('Loading')
+
+-- TWEEN
+local tween = require 'lib.tween'
 
 local percent = 0
 
@@ -17,6 +19,15 @@ function Loading:enteredState()
     cron.cancel(counterId)
     self:gotoState('MainMenu')
   end)
+
+  boy = {x=740,y=400,sprite=love.graphics.newImage("assets/Character Boy Left.png")}
+  tween(5, boy, {x = 0}, 'inOutQuad')
+
+end
+
+function Loading:update(dt)
+  -- TWEEN UPDATE
+  tween.update(dt)
 end
 
 function Loading:draw()
@@ -37,6 +48,8 @@ function Loading:draw()
 
   -- RESET COLOR
   love.graphics.setColor(255,255,255)
+
+  love.graphics.draw(boy.sprite, boy.x, boy.y) 
 end
 
 return Loading

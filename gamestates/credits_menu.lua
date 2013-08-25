@@ -35,7 +35,7 @@ function CreditsMenu:draw()
   love.graphics.printf("Game engine: love2d.org", 
     0, 210, love.graphics.getWidth(), "center")
 
-  love.graphics.printf("Source code: github.com/FireZenk/ld27", 
+  love.graphics.printf("Source code: github.com/FireZenk/LD27", 
     0, 240, love.graphics.getWidth(), "center")
 
   love.graphics.printf("Graphics: lostgarden.com", 

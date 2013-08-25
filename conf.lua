@@ -6,7 +6,7 @@
 -- benchmark; if it can't run under this, then you are definitely going to
 -- have problems.
 function love.conf(t)
-    t.title             = "10 seconds to escape"            -- The title of the window the game is in (string)
+    t.title             = "10 Seconds to escape"            -- The title of the window the game is in (string)
     t.author            = "FireZenk <firezenk@gmail.com>"   -- The author of the game (string)
     t.url               = "http://firezenk.com"             -- The website of the game (string)
 
